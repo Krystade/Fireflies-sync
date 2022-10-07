@@ -1,13 +1,14 @@
 let fr = 60
-let popSize = 15
+let popSize = 1
 
 function setup() {
-	createCanvas(500, 500)
+	createCanvas(windowWidth, windowHeight)
 	frameRate(fr)
 	flies = []
 	for(var i = 0; i < popSize; i++){
-		flies.push(new Firefly(random(20, 480), random(20, 480), 15, 40))
+		flies.push(new Firefly(random(20, windowWidth - 20), random(20, windowHeight - 20), 15, 40))
 	}
+	//flies.push(new Light(100, 100, 20, 2))
 }
 
 function draw() {
@@ -19,4 +20,11 @@ function draw() {
 		//print("Firefly " + i)
 		//flies[i].print()
 	}
+}
+
+function mouseClicked(){
+	for(var i = 0; i < flies.length; i++){
+		flies[i].flashList.push(0)
+	}
+	flies.push(new Light(mouseX, mouseY, 20, 2))
 }
