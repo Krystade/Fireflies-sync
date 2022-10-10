@@ -9,19 +9,23 @@ function Firefly(x, y, w, h){
 	this.flashTime = 0.15
 	//Min time between flashes
 	this.flashSpace = 0.05
-	//frequency of flashes, number of flashes per second
-	this.freq = random(.25,1/(this.flashTime + this.flashSpace))
-	//Start with a random time until next flash
-	this.timer = random(0,1/this.freq*fr)
+	//How many flashes to wait until adjusting flash speed
+	this.flashThresh = 3
+	//How many flashes since last reset
+	this.flashCount = 0
+	//If the firefly is in the firt frame of flashing
+	this.flash = false
 	//List of how many times every other firefly has flashed since the last reset
 	this.flashList = []
 	for(var i = 0; i < flies.length; i++){
 		this.flashList.push(0)
 	}
-	//How many flashes to wait until adjusting flash speed
-	this.flashThresh = 3
-	//How many flashes since last reset
-	this.flashCount = 0
+	//frequency of flashes, number of flashes per second
+	this.freq = random(.25,1/(this.flashTime + this.flashSpace))
+	//Start with a random time until next flash
+	this.timer = random(0,1/this.freq*fr)
+	//How far away this firefly can see another
+	this.viewDistance = 10000
 	
 	 this.update = function(){
 		 //print(this.freq, this.timer, this.flashTime*fr, this.flashing)
@@ -30,19 +34,21 @@ function Firefly(x, y, w, h){
 			 if(this.flashing == false){
 				 //print("Flash!")
 				 this.flashCount += 1
-				 for(var i = 0; i < flies.length; i++){
-					 flies[i].flashList[i] += 1
-				 }
+				 //If the firefly is in the firt frame of flashing
+				 this.flash = true
 				 if(this.flashCount >= this.flashThresh){
 					 //Adjust timing based on flashList values vs flashCount values
 					 //Reset flashList and flashCount
 					 this.adjust()
 				 }
 				 this.print()
+			 }else{
+				 this.flash = false
 			 }
 			this.flashing = true
 		}else{
 			this.flashing = false
+			this.flash = false
 		}
 		 this.display()
 	 }
@@ -50,18 +56,20 @@ function Firefly(x, y, w, h){
 	this.adjust = function(){
 		for(var i = 0; i < flies.length; i++){
 			if(this != flies[i]){
-				if(this.flashCount > this.flashList[i]){
+				if(this.flashCount < this.flashList[i] && dist(this.x, this.y, flies[i].x, flies[i].y) < this.viewDistance){
+					//print(i, this.flashCount, this.flashList)
 					//Flashed more than this fly so slow down
-					print("start Increase freq", this.freq)
-					this.freq = constrain(this.freq + .01, .25,1/(this.flashTime + this.flashSpace))
-					print("stop", this.freq)
-					print("between ", .25, "and", 1/(this.flashTime + this.flashSpace))
+					//print("start Increase freq", this.freq)
+					this.freq = constrain(this.freq + .001, .25,1/(this.flashTime + this.flashSpace))
+					//print("stop", this.freq)
+					//print("between ", .25, "and", 1/(this.flashTime + this.flashSpace))
 				}else{
-					print("start Decrease freq", this.freq)
+					//print(i, this.flashCount, this.flashList)
+					//print("start Decrease freq", this.freq)
 					//Flashed less than this fly so speed up
-					this.freq = constrain(this.freq - .01, .25,1/(this.flashTime + this.flashSpace))
-					print("stop", this.freq)
-					print("between ", .25, "and", 1/(this.flashTime + this.flashSpace))
+					this.freq = constrain(this.freq - .001, .25,1/(this.flashTime + this.flashSpace))
+					//print("stop", this.freq)
+					//print("between ", .25, "and", 1/(this.flashTime + this.flashSpace))
 				}
 				this.flashList[i] = 0
 			}

@@ -12,6 +12,12 @@ function Light(x, y, r, f){
 	this.flashTime = 0.15
 	//Min time between flashes
 	this.flashSpace = 0.05
+	//How many flashes to wait until adjusting flash speed
+	this.flashThresh = 3
+	//How many flashes since last reset
+	this.flashCount = 0
+	//If the light is in the firt frame of flashing
+	this.flash = false
 	//frequency of flashes, number of flashes per second
 	//this.freq = random(.25,1/(this.flashTime + this.flashSpace))
 	//Start with a random time until next flash
@@ -21,10 +27,6 @@ function Light(x, y, r, f){
 	for(var i = 0; i < flies.length; i++){
 		this.flashList.push(0)
 	}
-	//How many flashes to wait until adjusting flash speed
-	this.flashThresh = 3
-	//How many flashes since last reset
-	this.flashCount = 0
 	
 	 this.update = function(){
 		 //print(this.freq, this.timer, this.flashTime*fr, this.flashing)
@@ -33,15 +35,20 @@ function Light(x, y, r, f){
 			//First frame of flashing
 			 if(this.flashing == false){
 				 //print("Flash!")
+				 //If the light is in the firt frame of flashing
+				 this.flash = true
 				 this.flashCount += 1
 				 for(var i = 0; i < flies.length; i++){
 					 flies[i].flashList[i] += 1
 				 }
 				 this.print()
+			 }else{
+				this.flash = false
 			 }
 			this.flashing = true
 		}else{
 			this.flashing = false
+			this.flash = false
 		}
 		 this.display()
 	 }

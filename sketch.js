@@ -1,5 +1,5 @@
 let fr = 60
-let popSize = 1
+let popSize = 2
 
 function setup() {
 	createCanvas(windowWidth, windowHeight)
@@ -17,6 +17,11 @@ function draw() {
 	//Update every firefly
 	for (var i = 0; i < flies.length; i++){
 		flies[i].update()
+		if(flies[i].flash){
+			for(var j = 0; j < flies.length; j++){
+				flies[j].flashList[i] += 1
+			}
+		}
 		//print("Firefly " + i)
 		//flies[i].print()
 	}
