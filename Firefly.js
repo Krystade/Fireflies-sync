@@ -1,13 +1,16 @@
 function Firefly(x, y, w, h){
+	this.type = "Firefly"
+	//Position in the flies List
+	this.pos = -1
 	this.x = x
 	this.y = y
 	this.w = w
 	this.h = h
 	
 	//How long the flash lasts
-	this.flashTime = 0.5
+	this.flashTime = 0.15
 	//Min time between flashes
-	this.flashSpace = 0.15
+	this.flashSpace = 0.05
 	//How many flashes to wait until adjusting flash speed
 	this.flashThresh = 3
 	//How many flashes since last reset
@@ -20,18 +23,21 @@ function Firefly(x, y, w, h){
 	this.flashReset = []
 	
 	//frequency of flashes, number of flashes per second
-	this.freq = random(.15,1/(this.flashTime + this.flashSpace))
+	this.freq = floor(random(.25,1/(this.flashTime + this.flashSpace))*roundingVal)/roundingVal
 	//How much a frequency is adjusted
 	this.freqChange = .01
+	//The max value the timer can hit
+	this.timerMax = floor(1/this.freq*fr)
 	//Start with a random time until next flash
-	this.timer = random(0,1/this.freq*fr)
+	this.timer = floor(random(0,this.timerMax))
 	//How many pixels away a firefly can see another flash
-	this.sightDistance = 500
+	this.viewDistance = 200
+	//What color the view distance debug lines are
+	this.lineColor = [200, 50, 50]
 	
 	 this.update = function(){
 		 //If the firefly flashed this frame
 		 this.flash = false
-		 //print(this.freq, this.timer, this.flashTime*fr, this.flashing)
 		 this.tick()
 		 if(this.timer < this.flashTime*fr){
 			 if(this.flashing == false){
@@ -39,34 +45,8 @@ function Firefly(x, y, w, h){
 				 //If this is the first frame of the flash
 		 		 this.flash = true
 				 this.flashCount += 1
-				 this.print()
-				 //Loop through every other firefly
-				 for(var i = 0; i < flies.length; i++){
-					 //If the other firefly is within 100 pixels, adjust to their speed
-					 if(this != flies[i] && dist(this.x, this.y, flies[i].x, flies[i].y) < this.sightDistance){
-						 //If the current firefly either flashes faster others
-						 if(this.trackFlashed[i] == 0){
-							 //print("fly " + i + " just blinked")
-							 //Do nothing if the fireflies are in sync already
-							 if(flies[i].timer == this.timer && flies[i].freq == this.freq){
-								 print("In sync with fly " + i)
-							 
-							 }else{
-								 //this.freq -= .05
-								 this.freq = constrain(this.freq - this.freqChange, .25,1/(this.flashTime + this.flashSpace))
-							 }
-						 //Slow down if the other is going to speed up
-						 }else if(this.trackFlashed[i] > 1){
-							 //this.freq += .05
-							 //this.freq = constrain(this.freq + this.freqChange * 1/dist(this.x,this.y, flies[i].x,flies[i].y), .25,1/(this.flashTime + this.flashSpace))
-							 this.freq = constrain(this.freq + this.freqChange, .25,1/(this.flashTime + this.flashSpace))
-							 //print("fly " + i + " blinking soon")
-						 }
-					 }
-				 }
-				 for(var i = 0; i < this.trackFlashed.length; i++){
-					 this.trackFlashed[i] = 0
-				 }
+				 //this.print()
+				 this.adjust()
 				 
 			 }
 			this.flashing = true
@@ -78,16 +58,54 @@ function Firefly(x, y, w, h){
 	 
 	 this.tick = function(){
 		 this.timer++
-		 this.timer %= 1/this.freq*fr
+		 this.timer %= this.timerMax
 	 }
+	 
+	this.adjust = function(){
+		 //Loop through every other firefly
+		 for(var i = 0; i < flies.length; i++){
+			 //If the other firefly is within 100 pixels, adjust to their speed
+			 if(this != flies[i] && dist(this.x, this.y, flies[i].x, flies[i].y) < this.viewDistance){
+				//If the current firefly either flashes faster others
+				if(this.trackFlashed[i] == 0){
+					//Do nothing if the fireflies are in sync already
+					if(flies[i].timer == this.timer && flies[i].freq == this.freq){
+						//Do nothing since the flies are in sync
+					}else{
+						this.freq = floor(constrain(this.freq - this.freqChange, .25,1/(this.flashTime + this.flashSpace))*roundingVal)/roundingVal
+					}
+				/*
+				//Slow down if the other is going to speed up
+				}else if(this.trackFlashed[i] == 1){
+					if(flies[i].timer < 5){
+					//Do nothing if theyre basically in sync already
+					}else if(flies[i].timer < flies[i].timerMax*0.2){
+						//Speed up if the other just flashed
+						this.freq = floor(constrain(this.freq + this.freqChange, .25,1/(this.flashTime + this.flashSpace))*roundingVal)/roundingVal
+					//Slow down to let the other catch up
+					}else{
+						this.freq = floor(constrain(this.freq - this.freqChange, .25,1/(this.flashTime - this.flashSpace))*roundingVal)/roundingVal
+					}*/
+				}
+				else if(this.trackFlashed[i] > 1){
+					 this.freq = floor(constrain(this.freq + this.freqChange, .25,1/(this.flashTime + this.flashSpace))*roundingVal)/roundingVal
+				 }
+				 this.timerMax = floor(1/this.freq*fr)
+			 }
+		 }
+		 for(var i = 0; i < this.trackFlashed.length; i++){
+			 this.trackFlashed[i] = 0
+		 }
+	}
 	
 	this.display = function(){
 		stroke(0)
 		strokeWeight(1.5)
 		//Draw the body
-		//fill(100,70,0)
-		//ellipse(this.x, this.y, this.w, this.h)
-		
+		if(debug){
+			fill(this.lineColor)
+			ellipse(this.x, this.y, this.w, this.h)
+		}
 		
 		
 		//Draw the light
@@ -107,6 +125,12 @@ function Firefly(x, y, w, h){
 		//Draw the main light
 		ellipse(this.x, this.y + this.h/2 - this.h/4/2, this.w) 
 		//Need to rotate them randomly later to make it look nicer
+		if(debug){
+			fill(255)
+			stroke(3)
+			textAlign("center")
+			text(this.pos, this.x, this.y)
+		}
 	}
 	
 	this.print = function(){

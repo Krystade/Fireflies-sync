@@ -24,6 +24,7 @@ function Light(x, y, r, f){
 	this.timer = 0
 	//List of how many times every other firefly has flashed since the last reset
 	this.flashList = [0]
+	this.lineColor = [255,255,255]
 	//From old code
 	this.trackFlashed = [0]
 	this.flashReset = [0]
@@ -38,7 +39,7 @@ function Light(x, y, r, f){
 				 //If the light is in the firt frame of flashing
 				 this.flash = true
 				 this.flashCount += 1
-				 this.print()
+				 //this.print()
 			 }else{
 				this.flash = false
 			 }
