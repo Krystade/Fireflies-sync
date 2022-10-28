@@ -4,9 +4,11 @@ let popSize = 100
 //Used to round to decimal places (100 = 2 decimals, 1000 = 3 decimals)
 let roundingVal = 100
 //Whether or not to run in debugging mode
-let debug = false
+let debug = true
+//Debug boundaries
+let debugSize = 500
 //Number of firelies when debugging
-let debugPopSize = 5
+let debugPopSize = 50
 //Timer values
 let hour = 0
 let minute = 0
@@ -30,7 +32,7 @@ function setup() {
 	//Populate the flies list
 	if(debug){
 		for(var i = 0; i < debugPopSize; i++){
-			flies.push(new Firefly(random(20, 500), random(20, 500), 15, 40))
+			flies.push(new Firefly(random(20, debugSize), random(20, debugSize), 15, 40))
 			flies[i].pos = i
 			flies[i].trackFlashed.push(0)
 			flies[i].flashReset.push(0)
@@ -125,6 +127,7 @@ function draw() {
 	//Update every firefly
 	for (var i = 0; i < flies.length; i++){
 		flies[i].update()
+		
 		for (var j = 0; j < flies.length; j++){
 			if(j != i){
 				if(flies[j].flash){
@@ -142,7 +145,7 @@ function draw() {
 function printList(list){
 	print("=======================")
 	for(var i = 0; i < list.length; i++){
-		print(i, flies[i].type, flies[i].freq, flies[i].timer, flies[i].timerMax)
+		print(i, flies[i].type, flies[i].freq, flies[i].timer, flies[i].timerMax, flies[i].up, flies[i].down)
 		//print(flies[i].lineColor)
 		//print(flies[i].trackFlashed)
 	}
@@ -151,6 +154,7 @@ function printList(list){
 
 function mouseClicked(){
 	newLight = new Light(mouseX, mouseY, 20, 2)
+	newLight.viewDistance = flies[0].viewDistance
 	for(var i = 0; i < flies.length; i++){
 		flies[i].trackFlashed.push(0)
 		flies[i].flashReset.push(0)
@@ -158,4 +162,76 @@ function mouseClicked(){
 		newLight.flashReset.push(0)
 	}
 	flies.push(newLight)
+}
+
+function adjustAll(){
+	//Loop through every firefly and adjust based on others 
+	for(var i = 0; i < flies.length; i++){
+		for(var j = 0; j < flies.length; j++){
+			fly1 = flies[i]
+			if(fly1.type == "Light"){
+				//Don't adjust any timing if the first fly is a Light
+			}else{
+				fly2 = flies[j]
+				//If the other firefly is within 100 pixels, adjust to their speed
+				if(i != j && dist(fly1.x, fly1.y, fly2.x, fly2.y) < fly1.viewDistance){
+					//If fly1 is faster than fly2 slow down
+				}
+
+			   }
+		}
+		
+		
+		
+		
+		/*
+		if(this != flies[i] && dist(this.x, this.y, flies[i].x, flies[i].y) < this.viewDistance){
+			//If the current firefly either flashes faster others
+			if(this.trackFlashed[i] == 0){
+				//Do nothing if the fireflies are in sync already
+				if(flies[i].timer == this.timer && flies[i].freq == this.freq){
+					//Do nothing since the flies are in sync
+				}else{
+					this.freq = floor(constrain(this.freq - this.freqChange, .15,1/(this.flashTime + this.flashSpace))*roundingVal)/roundingVal
+				}
+			}
+			else if(this.trackFlashed[i] > 1){
+				 this.freq = floor(constrain(this.freq + this.freqChange, .15,1/(this.flashTime + this.flashSpace))*roundingVal)/roundingVal
+			 }else{
+				//If the other flashed once then their freq is close so adjust based on timer
+				if(flies[i].timer <= flies[i].timerMax/2){
+					this.timerMax += 10
+
+				}else{
+					this.timerMax -= 10
+				}
+			}
+			this.timerMax = floor(1/this.freq*fr)
+		}*/
+	}
+}
+
+function syncLights(){
+	//The timer of the first light created
+	firstLight = -1
+	for(var i = 0; i < flies.length; i++){
+		if(flies[i].type == "Light"){
+			if(firstLight == -1){
+				firstLight = flies[i]
+			}else{
+				flies[i].timer = firstLight.timer
+			}
+		}
+	}
+}
+
+//Used to try and shake the flies out of a stuck cylce
+function shake(){
+	for(var i = 0; i < flies.length; i++){
+		if(flies[i].type == "Firefly"){
+			shakeVal = random(flies[i].freq*-0.1,flies[i].freq*0.1)
+			flies[i].freq += shakeVal
+			flies[i].freq = floor(constrain(flies[i].freq + shakeVal, .15,1/(flies[i].flashTime + flies[i].flashSpace))*roundingVal)/roundingVal
+		}
+	}
 }

@@ -22,12 +22,16 @@ function Light(x, y, r, f){
 	//this.freq = random(.25,1/(this.flashTime + this.flashSpace))
 	//Start with a random time until next flash
 	this.timer = 0
+	//How many pixels away a firefly can see another flash
+	this.viewDistance = 200
 	//List of how many times every other firefly has flashed since the last reset
 	this.flashList = [0]
 	this.lineColor = [255,255,255]
 	//From old code
 	this.trackFlashed = [0]
 	this.flashReset = [0]
+	//What color the view distance debug lines are
+	this.lineColor = [200, 50, 50]
 	
 	 this.update = function(){
 		 //print(this.freq, this.timer, this.flashTime*fr, this.flashing)
